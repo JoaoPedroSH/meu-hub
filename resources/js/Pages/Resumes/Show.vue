@@ -14,7 +14,7 @@ const printDocument = () => {
 </script>
 
 <template>
-    <Head :title="`Visualizar - ${resume.title}`" />
+    <Head :title="`${resume.title}`" />
 
     <div class="min-h-screen bg-slate-100 py-6 sm:py-10 px-4">
         <!-- Top Sticky Action Bar (hidden when printing) -->
