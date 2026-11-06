@@ -1,247 +1,185 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
 
-const showingMobileMenu = ref(false);
 const page = usePage();
+const showingMobileMenu = ref(false);
+const menus = computed(() => page.props.auth?.menus ?? {});
+const homeUrl = computed(() => {
+    if (menus.value.dashboard) {
+        return route('dashboard');
+    }
+
+    if (menus.value.resumes) {
+        return route('resumes.index');
+    }
+
+    if (menus.value.notes) {
+        return route('notes.index');
+    }
+
+    if (menus.value.calendar) {
+        return route('calendar.index');
+    }
+
+    if (menus.value.trader) {
+        return route('finance.trader.index');
+    }
+
+    if (menus.value.finance) {
+        return route('finance.index');
+    }
+
+    return route('profile.edit');
+});
+
+function closeMobileMenu() {
+    showingMobileMenu.value = false;
+}
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-50 text-slate-800 flex flex-col md:flex-row">
-        <!-- Desktop Sidebar -->
-        <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r border-slate-200 z-30">
-            <!-- Sidebar Header / Logo -->
-            <div class="flex h-16 items-center px-6 border-b border-slate-100">
-                <Link :href="route('dashboard')" class="flex items-center">
-                    <ApplicationLogo />
-                </Link>
+    <div class="flex min-h-screen flex-col bg-slate-50 text-slate-800 md:flex-row">
+        <aside class="fixed inset-y-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white md:flex">
+            <div class="flex h-16 items-center border-b border-slate-100 px-6">
+                <Link :href="homeUrl" class="flex items-center"><ApplicationLogo /></Link>
             </div>
 
-            <!-- Navigation Links -->
-            <div class="flex-1 flex flex-col justify-between overflow-y-auto px-4 py-6">
-                <nav class="space-y-6">
-                    <!-- General Area -->
-                    <div>
-                        <div class="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                            Geral
-                        </div>
+            <div class="flex flex-1 flex-col justify-between overflow-y-auto px-4 py-6">
+                <nav aria-label="Navegação principal" class="space-y-6">
+                    <section v-if="menus.dashboard">
+                        <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Geral</p>
                         <Link
                             :href="route('dashboard')"
-                            :class="[
-                                route().current('dashboard')
-                                    ? 'bg-slate-900 text-white font-medium shadow-sm'
-                                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-                                'group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-all duration-150'
-                            ]"
+                            :aria-current="route().current('dashboard') ? 'page' : undefined"
+                            :class="route().current('dashboard') ? 'bg-slate-900 font-medium text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
+                            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition"
                         >
-                            <span class="flex items-center gap-3"><svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect width="7" height="9" x="3" y="3" rx="1"/>
-                                <rect width="7" height="5" x="14" y="3" rx="1"/>
-                                <rect width="7" height="9" x="14" y="12" rx="1"/>
-                                <rect width="7" height="5" x="3" y="16" rx="1"/>
-                            </svg><span>Início</span></span><span v-if="route().current('dashboard')" class="h-1.5 w-1.5 rounded-full bg-white"></span>
+                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                            Dashboard
+                        </Link>
+                    </section>
+
+                    <section v-if="menus.finance || menus.trader">
+                        <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Finanças</p>
+                        <Link
+                            v-if="menus.finance"
+                            :href="route('finance.index')"
+                            :aria-current="route().current('finance.index') ? 'page' : undefined"
+                            :class="route().current('finance.index') ? 'bg-emerald-50 font-medium text-emerald-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
+                            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition"
+                        >
+                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M7 15h3"/></svg>
+                            Visão financeira
                         </Link>
                         <Link
+                            v-if="menus.trader"
+                            :href="route('finance.trader.index')"
+                            :aria-current="route().current('finance.trader.*') ? 'page' : undefined"
+                            :class="route().current('finance.trader.*') ? 'bg-emerald-50 font-medium text-emerald-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
+                            class="flex items-center gap-3 rounded-xl py-2.5 pr-3 text-sm transition pl-9"
+                        >
+                            Trader · Simulação
+                        </Link>
+                    </section>
+
+                    <section v-if="menus.resumes">
+                        <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Profissional</p>
+                        <Link
+                            :href="route('resumes.index')"
+                            :aria-current="route().current('resumes.*') ? 'page' : undefined"
+                            :class="route().current('resumes.*') ? 'bg-indigo-50 font-medium text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
+                            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition"
+                        >
+                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg>
+                            Currículos
+                        </Link>
+                    </section>
+
+                    <section v-if="menus.notes || menus.calendar">
+                        <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Pessoal</p>
+                        <Link
+                            v-if="menus.notes"
                             :href="route('notes.index')"
-                            :class="[route().current('notes.*') ? 'bg-amber-50 text-amber-700 font-medium' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900', 'group flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-150']"
+                            :aria-current="route().current('notes.*') ? 'page' : undefined"
+                            :class="route().current('notes.*') ? 'bg-amber-50 font-medium text-amber-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
+                            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition"
                         >
-                            <span class="flex items-center gap-3"><svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h6M8 16h4"/></svg><span>Anotações</span></span><span v-if="route().current('notes.*')" class="h-1.5 w-1.5 rounded-full bg-amber-600"></span>
+                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h6M8 16h4"/></svg>
+                            Anotações
                         </Link>
                         <Link
+                            v-if="menus.calendar"
                             :href="route('calendar.index')"
-                            :class="[route().current('calendar.*') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900', 'group flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-150']"
+                            :aria-current="route().current('calendar.*') ? 'page' : undefined"
+                            :class="route().current('calendar.*') ? 'bg-indigo-50 font-medium text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
+                            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition"
                         >
-                            <span class="flex items-center gap-3"><svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg><span>Agenda</span></span><span v-if="route().current('calendar.*')" class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span>
+                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                            Agenda
                         </Link>
-                    </div>
+                    </section>
 
-                    <div v-if="$page.props.auth.is_admin">
-                        <div class="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Administração</div>
-                        <Link :href="route('admin.dashboard')" :class="[route().current('admin.dashboard') ? 'bg-slate-900 text-white font-medium shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900', 'group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-all duration-150']"><span class="flex items-center gap-3"><svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h5M8 16h7"/></svg>Painel Administrativo</span><span v-if="route().current('admin.dashboard')" class="h-1.5 w-1.5 rounded-full bg-white"></span></Link>
-                        <Link :href="route('admin.users')" :class="[route().current('admin.users') ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900', 'group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-all duration-150']"><span class="flex items-center gap-3"><svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2.5 20a5.5 5.5 0 0 1 11 0M10.5 20a5.5 5.5 0 0 1 11 0"/></svg>Usuários</span><span v-if="route().current('admin.users')" class="h-1.5 w-1.5 rounded-full bg-slate-900"></span></Link>
-                        <Link :href="route('admin.integrations')" :class="[route().current('admin.integrations') ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900', 'group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-all duration-150']"><span class="flex items-center gap-3"><svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12M18 9v12M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 15c5 0 5-6 12-6"/></svg>Integrações</span><span v-if="route().current('admin.integrations')" class="h-1.5 w-1.5 rounded-full bg-slate-900"></span></Link>
-                    </div>
-
-                    <!-- Category: Profissional -->
-                    <div v-if="!$page.props.auth.is_admin">
-                        <div class="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                            Profissional
-                        </div>
-                        <div class="space-y-1">
-                            <Link
-                                :href="route('resumes.index')"
-                                :class="[
-                                    route().current('resumes.*')
-                                        ? 'bg-indigo-50 text-indigo-700 font-medium'
-                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-                                    'group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-all duration-150'
-                                ]"
-                            >
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                        <polyline points="14 2 14 8 20 8"/>
-                                        <line x1="16" y1="13" x2="8" y2="13"/>
-                                        <line x1="16" y1="17" x2="8" y2="17"/>
-                                        <polyline points="10 9 9 9 8 9"/>
-                                    </svg>
-                                    <span>Currículos</span>
-                                </div>
-                                <span v-if="route().current('resumes.*')" class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
-                            </Link>
-                        </div>
-                    </div>
-
-                    <!-- Category: Configurações -->
-                    <div>
-                        <div class="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                            Sistema
-                        </div>
+                    <section>
+                        <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Conta</p>
                         <Link
                             :href="route('profile.edit')"
-                            :class="[
-                                route().current('profile.edit')
-                                    ? 'bg-slate-100 text-slate-900 font-medium'
-                                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-                                'group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-all duration-150'
-                            ]"
+                            :aria-current="route().current('profile.*') || route().current('settings.users.*') ? 'page' : undefined"
+                            :class="route().current('profile.*') || route().current('settings.users.*') ? 'bg-slate-100 font-medium text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
+                            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition"
                         >
-                            <span class="flex items-center gap-3"><svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="3"/>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                            </svg>
-                            Configurações</span><span v-if="route().current('profile.edit')" class="h-1.5 w-1.5 rounded-full bg-slate-900"></span>
+                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33h-.08a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82v-.08a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09a1.65 1.65 0 0 0 1.51-1v-.08a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.6h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            Configurações
                         </Link>
-                    </div>
+                    </section>
                 </nav>
 
-                <!-- Bottom User Card -->
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div class="flex items-center gap-3 overflow-hidden">
-                        <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
-                            {{ $page.props.auth.user.name.charAt(0).toUpperCase() }}
-                        </div>
-                        <div class="truncate">
-                            <p class="text-xs font-semibold text-slate-800 truncate">{{ $page.props.auth.user.name }}</p>
-                            <p class="text-[11px] text-slate-400 truncate">{{ $page.props.auth.user.email }}</p>
+                <div class="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">{{ page.props.auth.user.name.charAt(0).toUpperCase() }}</div>
+                        <div class="min-w-0">
+                            <p class="truncate text-xs font-semibold text-slate-800">{{ page.props.auth.user.name }}</p>
+                            <p class="truncate text-[11px] text-slate-400">{{ page.props.auth.user.email }}</p>
                         </div>
                     </div>
-                    <Link
-                        :href="route('logout')"
-                        method="post"
-                        as="button"
-                        class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
-                        title="Sair"
-                    >
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                            <polyline points="16 17 21 12 16 7"/>
-                            <line x1="21" y1="12" x2="9" y2="12"/>
-                        </svg>
+                    <Link :href="route('logout')" method="post" as="button" aria-label="Sair da conta" title="Sair" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
                     </Link>
                 </div>
             </div>
         </aside>
 
-        <!-- Mobile Top Navigation -->
-        <header class="md:hidden bg-white border-b border-slate-200 sticky top-0 z-40">
-            <div class="flex items-center justify-between px-4 h-16">
-                <Link :href="route('dashboard')">
-                    <ApplicationLogo />
-                </Link>
-                <button
-                    @click="showingMobileMenu = !showingMobileMenu"
-                    class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
-                    aria-label="Menu"
-                >
-                    <svg v-if="!showingMobileMenu" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Mobile Dropdown Menu -->
-            <div v-show="showingMobileMenu" class="border-t border-slate-200 px-4 py-3 space-y-2 bg-white shadow-lg">
-                <Link
-                    :href="route('dashboard')"
-                    @click="showingMobileMenu = false"
-                    :class="[
-                        route().current('dashboard') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100',
-                        'block px-3 py-2 rounded-md text-sm font-medium'
-                    ]"
-                >
-                    Início
-                </Link>
-                <Link
-                    v-if="!$page.props.auth.is_admin"
-                    :href="route('resumes.index')"
-                    @click="showingMobileMenu = false"
-                    :class="[
-                        route().current('resumes.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-700 hover:bg-slate-100',
-                        'block px-3 py-2 rounded-md text-sm font-medium'
-                    ]"
-                >
-                    Currículos
-                </Link>
-                <Link :href="route('notes.index')" @click="showingMobileMenu = false" class="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100">Anotações</Link>
-                <Link :href="route('calendar.index')" @click="showingMobileMenu = false" class="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100">Agenda</Link>
-                <Link
-                    :href="route('profile.edit')"
-                    @click="showingMobileMenu = false"
-                    class="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100"
-                >
-                    Configurações
-                </Link>
-                <Link :href="route('profile.edit', { tab: 'perfil' })" @click="showingMobileMenu = false" class="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100">Configurações</Link>
-                <template v-if="$page.props.auth.is_admin"><Link :href="route('admin.dashboard')" @click="showingMobileMenu = false" class="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100">Painel Administrativo</Link><Link :href="route('admin.users')" @click="showingMobileMenu = false" class="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100">Usuários</Link><Link :href="route('admin.integrations')" @click="showingMobileMenu = false" class="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100">Integrações</Link></template>
-                <div class="pt-2 border-t border-slate-100">
-                    <Link
-                        :href="route('logout')"
-                        method="post"
-                        as="button"
-                        class="w-full text-left px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-md"
-                    >
-                        Sair da conta
-                    </Link>
+        <div class="flex min-h-screen flex-1 flex-col md:pl-64">
+            <header class="sticky top-0 z-40 border-b border-slate-200 bg-white md:hidden">
+                <div class="flex h-16 items-center justify-between px-4">
+                    <Link :href="homeUrl"><ApplicationLogo /></Link>
+                    <button type="button" class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" :aria-expanded="showingMobileMenu" aria-controls="mobile-navigation" aria-label="Alternar navegação" @click="showingMobileMenu = !showingMobileMenu">
+                        <svg v-if="!showingMobileMenu" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        <svg v-else class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 18 12-12M6 6l12 12"/></svg>
+                    </button>
                 </div>
-            </div>
-        </header>
-
-        <!-- Main Content Area -->
-        <div class="flex-1 md:pl-64 flex flex-col min-h-screen">
-            <!-- Global Flash Banner -->
-            <div v-if="page.props.flash?.success" class="bg-emerald-50 border-b border-emerald-200 px-4 py-3 sm:px-6">
-                <div class="max-w-7xl mx-auto flex items-center justify-between text-emerald-800 text-sm">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                        <span>{{ page.props.flash.success }}</span>
-                    </div>
-                </div>
-            </div>
-            <div v-if="page.props.flash?.error" class="bg-rose-50 border-b border-rose-200 px-4 py-3 sm:px-6 text-sm text-rose-800">
-                <div class="max-w-7xl mx-auto">{{ page.props.flash.error }}</div>
-            </div>
-
-            <!-- Page Header Slot -->
-            <header v-if="$slots.header" class="bg-white border-b border-slate-200 px-4 py-4 sm:px-8">
-                <div class="max-w-7xl mx-auto">
-                    <slot name="header" />
-                </div>
+                <nav v-if="showingMobileMenu" id="mobile-navigation" aria-label="Navegação principal" class="space-y-1 border-t border-slate-100 bg-white px-4 py-3">
+                    <Link v-if="menus.dashboard" :href="route('dashboard')" class="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-100" @click="closeMobileMenu">Dashboard</Link>
+                    <Link v-if="menus.resumes" :href="route('resumes.index')" class="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-100" @click="closeMobileMenu">Profissional · Currículos</Link>
+                    <Link v-if="menus.notes" :href="route('notes.index')" class="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-100" @click="closeMobileMenu">Pessoal · Anotações</Link>
+                    <Link v-if="menus.calendar" :href="route('calendar.index')" class="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-100" @click="closeMobileMenu">Pessoal · Agenda</Link>
+                    <Link v-if="menus.finance" :href="route('finance.index')" class="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-100" @click="closeMobileMenu">Finanças</Link>
+                    <Link v-if="menus.trader" :href="route('finance.trader.index')" class="block rounded-xl px-3 py-2.5 pl-7 text-sm text-slate-700 hover:bg-slate-100" @click="closeMobileMenu">Finanças · Trader (simulação)</Link>
+                    <Link :href="route('profile.edit')" class="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-100" @click="closeMobileMenu">Configurações</Link>
+                    <Link :href="route('logout')" method="post" as="button" class="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-rose-50" @click="closeMobileMenu">Sair da conta</Link>
+                </nav>
             </header>
 
-            <!-- Page Content -->
-            <main class="flex-1 py-8 px-4 sm:px-8">
-                <div class="max-w-7xl mx-auto">
-                    <slot />
-                </div>
+            <div v-if="page.props.flash?.success" class="border-b border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 sm:px-8" role="status">{{ page.props.flash.success }}</div>
+            <div v-if="page.props.flash?.error" class="border-b border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 sm:px-8" role="alert">{{ page.props.flash.error }}</div>
+
+            <header v-if="$slots.header" class="border-b border-slate-200 bg-white px-4 py-4 sm:px-8">
+                <div class="mx-auto max-w-7xl"><slot name="header" /></div>
+            </header>
+
+            <main class="flex-1 px-4 py-8 sm:px-8">
+                <div class="mx-auto max-w-7xl"><slot /></div>
             </main>
         </div>
     </div>

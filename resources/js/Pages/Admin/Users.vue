@@ -1,9 +1,0 @@
-<script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-defineProps({ users: { type: Array, default: () => [] } });
-function toggle(user) { useForm({}).patch(route('admin.users.toggle-admin', user.id)); }
-</script>
-<template>
-    <Head title="Usuários — Administração" /><AuthenticatedLayout><div class="max-w-6xl"><div class="border-b border-slate-200 pb-6"><nav class="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-400"><Link :href="route('admin.dashboard')" class="hover:text-slate-700">Administração</Link><span>/</span><span class="text-slate-600">Usuários</span></nav><h1 class="text-2xl font-bold tracking-tight text-slate-900">Usuários</h1><p class="mt-1 text-sm text-slate-500">Gerencie o acesso administrativo das contas.</p></div><div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div v-for="user in users" :key="user.id" class="flex flex-col gap-4 border-b border-slate-100 p-5 last:border-0 sm:flex-row sm:items-center sm:justify-between"><div><p class="font-semibold text-slate-900">{{ user.name }}</p><p class="text-sm text-slate-500">{{ user.email }}</p><p class="mt-1 text-xs text-slate-400">{{ user.resumes_count }} currículos · {{ user.notes_count }} anotações · {{ user.calendar_events_count }} eventos</p></div><div class="flex items-center gap-3"><span v-if="user.is_admin" class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">Administrador</span><button v-if="user.id !== $page.props.auth.user.id" @click="toggle(user)" class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200">{{ user.is_admin ? 'Remover acesso' : 'Tornar administrador' }}</button></div></div></div></div></AuthenticatedLayout>
-</template>
