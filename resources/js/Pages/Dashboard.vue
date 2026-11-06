@@ -1,13 +1,84 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-const props = defineProps({ resumesCount: Number, latestResume: Object, notesCount: Number, upcomingEventsCount: Number, shortcuts: { type: Array, default: () => [] }, availableShortcuts: { type: Array, default: () => [] } });
-const isCreateModalOpen = ref(false); const isShortcutModalOpen = ref(false); const createForm = useForm({ title: '' }); const shortcutForm = useForm({ shortcuts: [...props.shortcuts] });
-const options = [{ id: 'resumes', label: 'Currículos', category: 'Profissional' }, { id: 'notes', label: 'Anotações', category: 'Geral' }, { id: 'calendar', label: 'Agenda', category: 'Geral' }, { id: 'profile', label: 'Configurações', category: 'Sistema' }].filter(option => props.availableShortcuts.includes(option.id));
-function submitCreate() { createForm.post(route('resumes.store'), { onSuccess: () => { isCreateModalOpen.value = false; } }); }
-function saveShortcuts() { shortcutForm.patch(route('dashboard.shortcuts'), { preserveScroll: true, preserveState: false, onSuccess: () => { isShortcutModalOpen.value = false; } }); }
+
+defineProps({
+    canShowResumes: { type: Boolean, default: false },
+    canShowNotes: { type: Boolean, default: false },
+    canShowCalendar: { type: Boolean, default: false },
+    resumesCount: { type: Number, default: 0 },
+    notesCount: { type: Number, default: 0 },
+    upcomingEventsCount: { type: Number, default: 0 },
+    latestResume: { type: Object, default: null },
+});
 </script>
+
 <template>
-    <Head title="Dashboard" /><AuthenticatedLayout><div class="max-w-6xl"><div class="flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-center sm:justify-between"><div><h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Olá, {{ $page.props.auth.user.name.split(' ')[0] }}</h1><p class="mt-1 text-sm text-slate-500">Bem-vindo ao seu espaço pessoal. Escolha por onde começar.</p></div><button @click="isShortcutModalOpen = true" class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Personalizar atalhos</button></div><div v-if="!shortcuts.length" class="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center"><p class="font-semibold text-slate-800">Nenhum atalho selecionado</p><button @click="isShortcutModalOpen = true" class="mt-3 text-sm font-semibold text-indigo-600">Escolher atalhos</button></div><div v-else class="mt-8 grid gap-6 md:grid-cols-2"><Link v-if="shortcuts.includes('resumes')" :href="route('resumes.index')" class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:shadow-md"><div class="flex items-start justify-between"><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{{ resumesCount }}</span></div><h2 class="mt-5 text-lg font-semibold">Currículos</h2><p class="mt-1 text-sm text-slate-500">Crie, edite e exporte suas versões profissionais.</p></Link><Link v-if="shortcuts.includes('notes')" :href="route('notes.index')" class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:shadow-md"><div class="flex items-start justify-between"><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h6M8 16h4"/></svg></div><span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{{ notesCount }}</span></div><h2 class="mt-5 text-lg font-semibold">Anotações</h2><p class="mt-1 text-sm text-slate-500">Guarde ideias, referências e lembretes.</p></Link><Link v-if="shortcuts.includes('calendar')" :href="route('calendar.index')" class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:shadow-md"><div class="flex items-start justify-between"><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{{ upcomingEventsCount }}</span></div><h2 class="mt-5 text-lg font-semibold">Agenda</h2><p class="mt-1 text-sm text-slate-500">Organize compromissos e conecte anotações.</p></Link><Link v-if="shortcuts.includes('profile')" :href="route('profile.edit')" class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:shadow-md"><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-700"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 14a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9A1.65 1.65 0 0 0 10 3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z"/></svg></div><h2 class="mt-5 text-lg font-semibold">Configurações</h2><p class="mt-1 text-sm text-slate-500">Atualize seu perfil e preferências.</p></Link></div><div v-if="isShortcutModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4"><div class="fixed inset-0 bg-slate-900/40" @click="isShortcutModalOpen = false"></div><div class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"><h2 class="text-lg font-semibold">Personalizar atalhos</h2><p class="mt-1 text-sm text-slate-500">Escolha apenas ferramentas disponíveis para você.</p><div class="mt-5 space-y-3"><label v-for="option in options" :key="option.id" class="flex items-center justify-between rounded-xl border border-slate-200 p-3"><span><span class="block text-sm font-medium">{{ option.label }}</span><span class="text-xs text-slate-400">{{ option.category }}</span></span><input v-model="shortcutForm.shortcuts" :value="option.id" type="checkbox" class="rounded border-slate-300 text-indigo-600" /></label></div><div class="mt-6 flex justify-end gap-2"><button @click="isShortcutModalOpen = false" class="rounded-xl bg-slate-100 px-4 py-2 text-sm">Cancelar</button><button @click="saveShortcuts" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">Salvar</button></div></div></div><div v-if="isCreateModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4"><div class="fixed inset-0 bg-slate-900/40" @click="isCreateModalOpen = false"></div><div class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"><h2 class="text-lg font-semibold">Novo currículo</h2><form @submit.prevent="submitCreate" class="mt-4 space-y-4"><input v-model="createForm.title" required placeholder="Identificação do currículo" class="w-full rounded-xl border-slate-300 text-sm" /><div class="flex justify-end gap-2"><button type="button" @click="isCreateModalOpen = false" class="rounded-xl bg-slate-100 px-4 py-2 text-sm">Cancelar</button><button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">Iniciar edição</button></div></form></div></div></div></AuthenticatedLayout>
+    <Head title="Dashboard" />
+
+    <AuthenticatedLayout>
+        <div class="mx-auto max-w-6xl">
+            <header class="border-b border-slate-200 pb-6">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">MeuHub</p>
+                <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                    Olá, {{ $page.props.auth.user.name.split(' ')[0] }}
+                </h1>
+                <p class="mt-1 text-sm text-slate-500">Organize suas informações e compromissos em um só lugar.</p>
+            </header>
+
+            <section v-if="canShowResumes" class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700">
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6M8 13h8M8 17h8" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">Profissional</p>
+                            <h2 class="mt-1 text-xl font-semibold text-slate-900">Currículos</h2>
+                            <p class="mt-1 text-sm text-slate-500">{{ resumesCount }} {{ resumesCount === 1 ? 'currículo salvo' : 'currículos salvos' }}</p>
+                        </div>
+                    </div>
+
+                    <Link :href="route('resumes.index')" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
+                        {{ resumesCount ? 'Abrir currículos' : 'Criar currículo' }}
+                    </Link>
+                </div>
+
+                <div v-if="latestResume" class="mt-7 border-t border-slate-100 pt-5">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Última atualização</p>
+                    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <Link :href="route('resumes.show', latestResume.id)" class="font-semibold text-slate-900 hover:text-indigo-700">{{ latestResume.title }}</Link>
+                            <p class="mt-1 text-sm text-slate-500">{{ latestResume.updated_at_formatted }} <span aria-hidden="true">·</span> {{ latestResume.updated_at_full }}</p>
+                        </div>
+                        <Link :href="route('resumes.edit', latestResume.id)" class="text-sm font-semibold text-indigo-700 hover:text-indigo-800">Continuar editando <span aria-hidden="true">→</span></Link>
+                    </div>
+                </div>
+
+                <div v-else class="mt-7 border-t border-slate-100 pt-5 text-sm text-slate-500">
+                    Seu primeiro currículo fica salvo somente nesta instalação.
+                </div>
+            </section>
+
+            <section v-if="canShowNotes || canShowCalendar" class="mt-6 grid gap-4 sm:grid-cols-2">
+                <Link v-if="canShowNotes" :href="route('notes.index')" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-amber-200 hover:shadow-md">
+                    <p class="text-sm font-medium text-amber-700">Pessoal</p>
+                    <h2 class="mt-1 text-lg font-semibold text-slate-900">Anotações</h2>
+                    <p class="mt-1 text-sm text-slate-500">{{ notesCount }} {{ notesCount === 1 ? 'anotação salva' : 'anotações salvas' }}</p>
+                </Link>
+                <Link v-if="canShowCalendar" :href="route('calendar.index')" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-indigo-200 hover:shadow-md">
+                    <p class="text-sm font-medium text-indigo-700">Pessoal</p>
+                    <h2 class="mt-1 text-lg font-semibold text-slate-900">Agenda</h2>
+                    <p class="mt-1 text-sm text-slate-500">{{ upcomingEventsCount }} {{ upcomingEventsCount === 1 ? 'compromisso futuro' : 'compromissos futuros' }}</p>
+                </Link>
+            </section>
+
+            <section v-if="!canShowResumes && !canShowNotes && !canShowCalendar" class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 text-sm leading-6 text-slate-600 shadow-sm sm:p-8">
+                O acesso a Currículos não está habilitado nesta conta. Peça à pessoa responsável pela instalação para ajustar seus menus em Configurações.
+            </section>
+        </div>
+    </AuthenticatedLayout>
 </template>

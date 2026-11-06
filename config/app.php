@@ -67,6 +67,11 @@ return [
 
     'timezone' => 'UTC',
 
+    'demo_user' => [
+        'email' => env('APP_DEMO_EMAIL'),
+        'password' => env('APP_DEMO_PASSWORD'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

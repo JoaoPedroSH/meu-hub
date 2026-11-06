@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Resume;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,24 +13,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::updateOrCreate(
-            ['email' => env('APP_ADMIN_EMAIL', 'admin@meuhub.local')],
-            [
-                'name' => 'Administrador',
-                'password' => Hash::make(env('APP_ADMIN_PASSWORD', 'senha123')),
-                'email_verified_at' => now(),
-                'is_admin' => true,
-            ]
-        );
+        if (! app()->environment(['local', 'development', 'testing'])) {
+            return;
+        }
 
-        $user = User::updateOrCreate(
-            ['email' => env('APP_CLIENT_TESTE_EMAIL', 'client@meuhub.local')],
-            [
-                'name' => 'Cliente',
-                'password' => Hash::make(env('APP_CLIENT_TESTE_PASSWORD', 'senha123')),
-                'email_verified_at' => now(),
-                'is_admin' => false,
-            ]
-        );
+        $email = config('app.demo_user.email');
+        $password = config('app.demo_user.password');
+
+        if (! $email || ! $password) {
+            return;
+        }
+
+        DB::transaction(function () use ($email, $password): void {
+            $demoUser = User::query()->firstOrNew(['email' => $email]);
+
+            User::query()
+                ->where('is_primary_user', true)
+                ->where('email', '!=', $email)
+                ->update(['is_primary_user' => false]);
+
+            $demoUser->fill([
+                'name' => 'Usuário de demonstração',
+                'password' => $password,
+                'is_primary_user' => true,
+                'menu_permissions' => User::MENU_KEYS,
+            ]);
+            $demoUser->email_verified_at = now();
+            $demoUser->save();
+        });
     }
 }

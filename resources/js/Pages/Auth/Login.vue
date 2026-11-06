@@ -1,27 +1,13 @@
 <script setup>
-import Checkbox from '@/Components/Checkbox.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 
-defineProps({
-    canResetPassword: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
-    googleConfigured: {
-        type: Boolean,
-        default: false,
-    },
-    googleEnabled: {
-        type: Boolean,
-        default: false,
-    },
+const props = defineProps({
+    status: String,
+    demoCredentials: { type: Object, default: null },
 });
 
 const form = useForm({
@@ -30,21 +16,20 @@ const form = useForm({
     remember: false,
 });
 
-const submit = () => {
+function submit() {
     form.post(route('login'), {
         onFinish: () => form.reset('password'),
     });
-};
+}
 
-const fillDemo = (admin = false) => {
-    if (admin) {
-        form.email = 'admin@meuhub.local';
-        form.password = 'senha123';
-    } else {
-        form.email = 'client@meuhub.local';
-        form.password = 'senha123';
+function fillDemoCredentials() {
+    if (!props.demoCredentials) {
+        return;
     }
-};
+
+    form.email = props.demoCredentials.email;
+    form.password = props.demoCredentials.password;
+}
 </script>
 
 <template>
@@ -52,114 +37,74 @@ const fillDemo = (admin = false) => {
         <Head title="Entrar no MeuHub" />
 
         <div class="mb-6">
-            <h2 class="text-xl font-bold text-slate-900">Entrar na sua conta</h2>
-            <p class="text-xs text-slate-500 mt-1">Acesse seus currículos e ferramentas do MeuHub.</p>
+            <h1 class="text-xl font-bold text-slate-900">Entrar no MeuHub</h1>
+            <p class="mt-1 text-sm leading-6 text-slate-500">
+                Acesse suas ferramentas pessoais nesta instalação local.
+            </p>
         </div>
 
-        <!-- Demo credentials box -->
-        <div class="mb-5 p-3.5 rounded-xl bg-indigo-50/80 border border-indigo-100 flex items-center justify-between text-xs text-indigo-900">
-            <div>
-                <p class="font-semibold">Conta de Demonstração (Cliente):</p>
-                <p class="text-indigo-700">client@meuhub.local • senha123</p>
-            </div>
-            <button
-                type="button"
-                @click="fillDemo"
-                class="px-2.5 py-1 bg-white hover:bg-indigo-100 font-semibold text-indigo-700 rounded-lg border border-indigo-200 transition"
-            >
-                Preencher
-            </button>
-        </div>
-
-        <div class="mb-5 p-3.5 rounded-xl bg-indigo-50/80 border border-indigo-100 flex items-center justify-between text-xs text-indigo-900">
-            <div>
-                <p class="font-semibold">Conta de Demonstração (Administrador):</p>
-                <p class="text-indigo-700">admin@meuhub.local • senha123</p>
-            </div>
-            <button
-                type="button"
-                @click="fillDemo(true)"
-                class="px-2.5 py-1 bg-white hover:bg-indigo-100 font-semibold text-indigo-700 rounded-lg border border-indigo-200 transition"
-            >
-                Preencher
-            </button>
-        </div>
-
-        <div v-if="status" class="mb-4 text-sm font-medium text-emerald-600">
+        <div v-if="status" class="mb-4 text-sm font-medium text-emerald-700" role="status">
             {{ status }}
         </div>
 
-        <div v-if="$page.props.flash?.error" class="mb-4 text-sm font-medium text-rose-600">
-            {{ $page.props.flash.error }}
+        <div v-if="demoCredentials" class="mb-5 flex items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-indigo-50/80 p-3.5 text-xs text-indigo-900">
+            <div>
+                <p class="font-semibold">Conta de demonstração</p>
+                <p class="mt-1 text-indigo-700">Disponível somente em desenvolvimento.</p>
+            </div>
+            <button
+                type="button"
+                class="shrink-0 rounded-lg border border-indigo-200 bg-white px-2.5 py-1 font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                @click="fillDemoCredentials"
+            >
+                Preencher
+            </button>
         </div>
 
-        <form @submit.prevent="submit" class="space-y-4">
+        <form class="space-y-4" @submit.prevent="submit">
             <div>
                 <InputLabel for="email" value="E-mail" />
-
                 <TextInput
                     id="email"
+                    v-model="form.email"
                     type="email"
                     class="mt-1 block w-full rounded-xl"
-                    v-model="form.email"
                     required
                     autofocus
                     autocomplete="username"
                 />
-
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
             <div>
                 <InputLabel for="password" value="Senha" />
-
                 <TextInput
                     id="password"
+                    v-model="form.password"
                     type="password"
                     class="mt-1 block w-full rounded-xl"
-                    v-model="form.password"
                     required
                     autocomplete="current-password"
                 />
-
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="flex items-center justify-between">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-xs text-slate-600">Lembrar-me</span>
-                </label>
+            <label class="flex items-center gap-2 text-sm text-slate-600">
+                <input v-model="form.remember" type="checkbox" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                Lembrar neste dispositivo
+            </label>
 
-                <Link
-                    v-if="canResetPassword"
-                    :href="route('password.request')"
-                    class="text-xs text-slate-600 hover:text-slate-900 underline"
-                >
-                    Esqueceu a senha?
-                </Link>
-            </div>
+            <button
+                type="submit"
+                :disabled="form.processing"
+                class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
+            >
+                {{ form.processing ? 'Entrando…' : 'Entrar' }}
+            </button>
 
-            <div class="pt-2">
-                <button
-                    type="submit"
-                    :disabled="form.processing"
-                    class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl shadow-xs transition disabled:opacity-50"
-                >
-                    Entrar
-                </button>
-            </div>
-
-            <div v-if="googleEnabled" class="flex items-center gap-3 py-2 text-xs text-slate-400"><span class="h-px flex-1 bg-slate-200"></span><span>ou</span><span class="h-px flex-1 bg-slate-200"></span></div>
-
-            <a v-if="googleEnabled" :href="route('login.google')" class="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"><span class="text-base font-bold text-blue-600">G</span>Continuar com o Google</a>
-
-            <div class="pt-2 text-center text-xs text-slate-500">
-                Não tem uma conta?
-                <Link :href="route('register')" class="font-semibold text-indigo-600 hover:text-indigo-800">
-                    Cadastre-se
-                </Link>
-            </div>
+            <p class="pt-2 text-center text-xs leading-5 text-slate-500">
+                As contas são criadas pela pessoa responsável nas configurações desta instalação.
+            </p>
         </form>
     </GuestLayout>
 </template>

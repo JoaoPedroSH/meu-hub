@@ -3,16 +3,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
-
-defineProps({
-    mustVerifyEmail: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
-});
+import { useForm, usePage } from '@inertiajs/vue3';
 
 const user = usePage().props.auth.user;
 
@@ -30,7 +21,7 @@ const form = useForm({
             </h2>
 
             <p class="mt-1 text-sm text-gray-600">
-                Atualize seu nome e endereço de e-mail.
+                Atualize o nome e o e-mail usados nesta instalação local.
             </p>
         </header>
 
@@ -67,27 +58,6 @@ const form = useForm({
                 />
 
                 <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div v-if="mustVerifyEmail && user.email_verified_at === null">
-                <p class="mt-2 text-sm text-gray-800">
-                    Seu endereço de e-mail ainda não foi verificado.
-                    <Link
-                        :href="route('verification.send')"
-                        method="post"
-                        as="button"
-                        class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Clique aqui para reenviar o e-mail de verificação.
-                    </Link>
-                </p>
-
-                <div
-                    v-show="status === 'verification-link-sent'"
-                    class="mt-2 text-sm font-medium text-green-600"
-                >
-                    Um novo link de verificação foi enviado para seu e-mail.
-                </div>
             </div>
 
             <div class="flex items-center gap-4">
