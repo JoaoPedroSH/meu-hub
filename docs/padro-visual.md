@@ -10,7 +10,7 @@ O MeuHub é um produto pessoal, calmo e modular. A interface deve transmitir cla
 - **Tipografia:** sistema sans-serif; títulos com peso 700/800 e textos de apoio com contraste reduzido.
 - **Cores:** fundo `slate-50`, superfícies brancas, texto `slate-900`, apoio `slate-500`.
 - **Ação principal:** `slate-900` com texto branco.
-- **Destaques:** índigo para navegação/profissional, âmbar para anotações, esmeralda para confirmações e rosa para ações destrutivas.
+- **Destaques:** índigo para navegação/profissional, esmeralda para confirmações e rosa para ações destrutivas.
 - **Forma:** cartões com raio `rounded-2xl`, bordas sutis e sombra discreta.
 - **Espaçamento:** usar múltiplos de 4; preferir respiro generoso a excesso de informação.
 
@@ -24,7 +24,7 @@ Desktop usa navegação lateral fixa de 16rem. Em telas menores, a navegação v
 
 ## Cabeçalhos de página
 
-As páginas de ferramenta usam o mesmo padrão de Currículos: breadcrumb em caixa alta (`Geral / Nome da ferramenta`), título `text-2xl font-bold`, subtítulo curto abaixo e ação principal alinhada à direita. Agenda e Anotações pertencem à categoria Geral; “espaço pessoal” pode aparecer apenas como linguagem de apoio, não como categoria.
+As páginas de ferramenta usam o mesmo padrão de Currículos: breadcrumb em caixa alta (`Profissional / Currículos`), título `text-2xl font-bold`, subtítulo curto abaixo e ação principal alinhada à direita.
 
 ## Ações de itens
 
@@ -34,14 +34,12 @@ Editar usa ícone de lápis em botão discreto `slate`, e remover usa ícone de 
 
 Todo controle deve ter texto ou `aria-label`, contraste suficiente, foco visível e alternativa para telas pequenas. Confirmações destrutivas são explícitas.
 
-## Administração e configurações
+## Configurações locais
 
-Administradores navegam apenas pelas categorias Geral, Administração e Sistema. O menu Usuários fica em Administração. Configurações usa abas Perfil / Usuário, Integrações e Notificações; a aba de Notificações permanece como estado vazio até a feature existir. Atalhos do Dashboard e do painel administrativo são preferências persistidas e só oferecem destinos autorizados.
+O MeuHub não tem painel administrativo separado nem interface de “admin” e “cliente”. Todas as contas locais usam o mesmo layout. A conta principal gerencia usuários e permissões de menu dentro de Configurações; essa área só aparece para quem tem autorização. As opções de menu respeitam as permissões configuradas, e o servidor também bloqueia acessos não autorizados. Não exibir abas ou destinos de funcionalidades que ainda não existem no MVP.
 
 ## Currículo e PDF
 
 O template único de currículo usa A4, margens de 15mm, hierarquia tipográfica objetiva e blocos que evitam quebra no meio de um item. A visualização web segue a mesma hierarquia do PDF.
 
-## Novas áreas
-
-Anotações usam superfície branca; somente tags são coloridas. A tela usa lista lateral rolável e editor de texto à direita. Tags podem ser removidas do catálogo, mas ficam preservadas visualmente nas notas existentes. Notas podem receber data, horário, dia inteiro e cor de evento para gerar/atualizar um compromisso na agenda. Agenda usa índigo como cor-base, com cores de evento selecionáveis. A relação entre nota e evento é opcional e não cria subgrupos de notas.
+O MVP exibe apenas Currículos. Outras ferramentas e categorias só entram na navegação quando forem implementadas.

@@ -12,8 +12,8 @@ Verifique idioma pt-BR, responsividade, foco de teclado, estado vazio, feedback 
 
 ## Segurança
 
-Toda entidade de usuário deve ser filtrada pelo usuário autenticado. Ações de alteração e exclusão devem validar propriedade no servidor; nunca confiar somente na interface.
+O app é local, sem cadastro público ou autenticação SaaS centralizada. A conta principal gerencia contas locais e permissões de menu nas Configurações. Toda entidade de usuário deve ser filtrada pelo usuário autenticado. Ações de alteração, exclusão e acesso a menus devem ser autorizadas no servidor; nunca confiar somente na interface. A conta principal não ganha acesso implícito aos dados privados de outras contas.
 
 ## Escopo
 
-Novas funcionalidades devem justificar sua presença no MVP e evitar abstrações prematuras. Categorias futuras não devem aparecer como menus vazios.
+Novas funcionalidades devem justificar sua presença no MVP e evitar abstrações prematuras. Categorias futuras não devem aparecer como menus vazios. Não introduzir painel administrativo separado, papéis de admin/cliente ou infraestrutura de SaaS.

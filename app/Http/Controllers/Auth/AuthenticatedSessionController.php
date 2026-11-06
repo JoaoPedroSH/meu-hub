@@ -4,11 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
-use App\Models\SystemSetting;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,11 +18,20 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): Response
     {
+        $demoCredentials = null;
+
+        if (app()->environment(['local', 'development', 'testing'])) {
+            $email = config('app.demo_user.email');
+            $password = config('app.demo_user.password');
+
+            if ($email && $password && User::query()->where('email', $email)->exists()) {
+                $demoCredentials = compact('email', 'password');
+            }
+        }
+
         return Inertia::render('Auth/Login', [
-            'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
-            'googleEnabled' => (bool) SystemSetting::getValue('google_login_enabled', false),
-            'googleConfigured' => filled(SystemSetting::getValue('google_client_id', config('services.google.client_id'))) && filled(SystemSetting::getSecret('google_client_secret', config('services.google.client_secret'))),
+            'demoCredentials' => $demoCredentials,
         ]);
     }
 
@@ -36,8 +44,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if ($request->user()->is_admin) return redirect()->route('admin.dashboard');
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('home');
     }
 
     /**

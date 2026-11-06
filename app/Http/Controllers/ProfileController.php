@@ -3,43 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Models\SystemSetting;
 
 class ProfileController extends Controller
 {
     /**
      * Display the user's profile form.
      */
-    public function edit(Request $request): Response
+    public function edit(): Response
     {
-        return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => session('status'),
-            'tab' => $request->query('tab', 'perfil'),
-            'google' => [
-                'configured' => filled(SystemSetting::getValue('google_client_id', config('services.google.client_id'))) && filled(SystemSetting::getSecret('google_client_secret', config('services.google.client_secret'))),
-                'enabled' => (bool) SystemSetting::getValue('google_calendar_enabled', false),
-                'connected' => (bool) $request->user()->googleCalendarConnection,
-                'email' => $request->user()->googleCalendarConnection?->google_email,
-                'last_synced_at' => $request->user()->googleCalendarConnection?->updated_at?->format('d/m/Y H:i'),
-            ],
-        ]);
-    }
-
-    public function shortcuts(Request $request): RedirectResponse
-    {
-        $validated = $request->validate(['shortcuts' => ['nullable', 'array'], 'shortcuts.*' => ['in:resumes,notes,calendar,profile']]);
-        $allowed = $request->user()->is_admin ? ['notes', 'calendar', 'profile'] : ['resumes', 'notes', 'calendar', 'profile'];
-        $selected = $validated['shortcuts'] ?? [];
-        $request->user()->update(['dashboard_shortcuts' => array_values(array_intersect(array_unique($selected), $allowed))]);
-        return Redirect::route('dashboard')->with('success', 'Atalhos do dashboard atualizados.');
+        return Inertia::render('Profile/Edit');
     }
 
     /**
@@ -49,33 +27,45 @@ class ProfileController extends Controller
     {
         $request->user()->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
         $request->user()->save();
 
-        return Redirect::route('profile.edit');
+        return Redirect::route('profile.edit')->with('success', 'Perfil atualizado.');
     }
 
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request): RedirectResponse
+    public function editMenu(Request $request): Response
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
+        $menuItems = collect(config('meuhub.menu_items'))
+            ->filter(fn (array $item): bool => $request->user()->canAccessMenu($item['permission']))
+            ->values();
+
+        return Inertia::render('Profile/MenuPreferences', [
+            'menuGroups' => $menuItems
+                ->groupBy('group')
+                ->map(fn ($items, string $group): array => [
+                    'label' => $group,
+                    'items' => $items->values(),
+                ])
+                ->values(),
+            'hiddenMenuItems' => array_values(array_intersect(
+                $request->user()->hidden_menu_items ?? [],
+                $menuItems->pluck('key')->all(),
+            )),
+        ]);
+    }
+
+    public function updateMenu(Request $request): RedirectResponse
+    {
+        $menuKeys = collect(config('meuhub.menu_items'))->pluck('key')->all();
+
+        $validated = $request->validate([
+            'hidden_menu_items' => ['nullable', 'array'],
+            'hidden_menu_items.*' => ['required', 'string', Rule::in($menuKeys)],
         ]);
 
-        $user = $request->user();
+        $request->user()->fill([
+            'hidden_menu_items' => array_values(array_unique($validated['hidden_menu_items'] ?? [])),
+        ])->save();
 
-        Auth::logout();
-
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
+        return Redirect::route('settings.menu.edit')->with('success', 'Seu menu foi atualizado.');
     }
 }
