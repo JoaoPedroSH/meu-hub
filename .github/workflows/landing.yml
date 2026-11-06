@@ -1,0 +1,22 @@
+name: Deploy Landing Page
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Publicar pasta landing no GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: landing
+          branch: gh-pages
